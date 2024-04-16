@@ -6,7 +6,8 @@ const Joi = require('joi');
 
 const blogJoiSchema = Joi.object({
   title: Joi.string().required(),
-  description: Joi.string().required()
+  description: Joi.string().required(),
+  content: Joi.string().required()
 });
 
 // @route POST blog/
@@ -29,13 +30,17 @@ exports.addBlog = async (req, res) => {
         sendErrorResponse(res, httpStatus.CONFLICT, 'Blog with this title Already Exists', {});
       }
 
+      console.log('uploads', req.file)
       //add path
-      req.body.image = req.file.path.split('uploads')[1];
+      if(req.file){
+        req.body.image = req.file.path.split('uploads')[1];
+      }
 
       const blog = await Blog.create({ ...req.body });
       return sendSuccessResponse(res, httpStatus.OK, 'Blog Added', blog);
       // })
     } catch (error) {
+      console.log('error', error)
       return sendErrorResponse(res, httpStatus.INTERNAL_SERVER_ERROR, 'Failed to add blog', error.message);
     }
   });
@@ -98,6 +103,7 @@ exports.getAllBlogs = async (req, res, next) => {
       };
     }
     const blogs = await sendResponse(Blog, page, limit, sortQuery, searchQuery, selectQuery, populate, next);
+    const randomBlogs = await Blog.aggregate([{ $match: { is_deleted: false } }, { $sample: { size: 5 } }]);
     return sendSuccessResponse(res, httpStatus.OK, 'Blog fetched', { blogs, randomBlogs });
   } catch (error) {
     return sendErrorResponse(res, httpStatus.INTERNAL_SERVER_ERROR, 'Failed to fetch blog', error.message);
