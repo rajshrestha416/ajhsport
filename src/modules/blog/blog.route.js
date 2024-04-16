@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const controller = require('./coaching.controller');
+const controller = require('./blog.controller');
 const { verifyUser } = require('../../middleware/auth');
 
 router.post('/', controller.addBlog);
