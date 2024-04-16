@@ -6,7 +6,14 @@ const Joi = require('joi');
 
 const coachingJoiSchema = Joi.object({
   title: Joi.string().required(),
-  description: Joi.string().required()
+  description: Joi.string().required(),
+  price: Joi.array().items(
+    Joi.object({
+      name: Joi.string().required(),
+      private: Joi.number().min(1),
+      group: Joi.number().min(1)
+    })
+  )
 });
 
 // @route POST coaching/
