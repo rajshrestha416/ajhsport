@@ -9,7 +9,7 @@ const Price = {
   group: {type: Number}
 }
 
-const coachingSchema = new Schema(
+const coachingLessonSchema = new Schema(
   {
     image: { type: String },
     title: { type: String, required: true },
@@ -22,4 +22,4 @@ const coachingSchema = new Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Coaching', coachingSchema);
+module.exports = mongoose.model('CoachingLesson', coachingLessonSchema);

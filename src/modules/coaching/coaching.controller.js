@@ -1,4 +1,4 @@
-const Coaching = require('./coaching.model');
+const CoachingLesson = require('./coaching.model');
 const upload = require('../../upload/upload');
 const { parseFilters, sendResponse, sendSuccessResponse, sendErrorResponse } = require('../../helpers/responseHelper');
 const httpStatus = require('http-status');
@@ -25,21 +25,24 @@ exports.addCoaching = async (req, res) => {
       return sendErrorResponse(res, httpStatus.INTERNAL_SERVER_ERROR, 'Error during file upload');
     }
     try {
+      if (typeof req.body.price === 'string') {
+        req.body.price = JSON.parse(req.body.price);
+      }
       const { error } = coachingJoiSchema.validate(req.body);
 
       if (error) {
         sendErrorResponse(res, httpStatus.BAD_REQUEST, 'Failed to add coaching', {}, error.message);
       }
 
-      const checkCoachingExists = await Coaching.findOne({ title: req.body.title, is_deleted: false });
+      const checkCoachingExists = await CoachingLesson.findOne({ title: req.body.title, is_deleted: false });
       if (checkCoachingExists) {
         sendErrorResponse(res, httpStatus.CONFLICT, 'Coaching with this title Already Exists', {});
       }
 
       //add path
-      req.body.image = req.file.path.split('uploads')[1];
+      if (req.file) req.body.image = req.file.path.split('uploads')[1];
 
-      const coaching = await Coaching.create({ ...req.body });
+      const coaching = await CoachingLesson.create({ ...req.body });
       return sendSuccessResponse(res, httpStatus.OK, 'Coaching Added', coaching);
       // })
     } catch (error) {
@@ -58,7 +61,11 @@ exports.updateCoaching = async (req, res) => {
         req.body.image = req.file.path.split('uploads')[1];
       }
 
-      const updatedCoaching = await Coaching.findByIdAndUpdate(req.params.id, req.body, { new: true });
+      if (typeof req.body.price === 'string') {
+        req.body.price = JSON.parse(req.body.price);
+      }
+
+      const updatedCoaching = await CoachingLesson.findByIdAndUpdate(req.params.id, req.body, { new: true });
       if (!updatedCoaching) {
         return sendErrorResponse(res, httpStatus.NOT_FOUND, 'Coaching not found');
       }
@@ -104,8 +111,8 @@ exports.getAllCoachings = async (req, res, next) => {
         ...searchQuery,
       };
     }
-    const coachings = await sendResponse(Coaching, page, limit, sortQuery, searchQuery, selectQuery, populate, next);
-    return sendSuccessResponse(res, httpStatus.OK, 'Coaching fetched', { coachings, randomCoachings });
+    const coachings = await sendResponse(CoachingLesson, page, limit, sortQuery, searchQuery, selectQuery, populate, next);
+    return sendSuccessResponse(res, httpStatus.OK, 'Coaching fetched', coachings);
   } catch (error) {
     return sendErrorResponse(res, httpStatus.INTERNAL_SERVER_ERROR, 'Failed to fetch coaching', error.message);
   }
@@ -115,10 +122,10 @@ exports.getAllCoachings = async (req, res, next) => {
 // @desc get all featured coachings
 exports.getFeaturedCoaching = async (req, res) => {
   try {
-    const coachings = await Coaching.find({
+    const coachings = await CoachingLesson.find({
       is_deleted: false,
       is_featured: true,
-    })
+    });
     return sendSuccessResponse(res, httpStatus.OK, 'Coaching fetched', coachings);
   } catch (error) {
     return sendErrorResponse(res, httpStatus.INTERNAL_SERVER_ERROR, 'Failed to fetch featured coaching', error.message);
@@ -130,8 +137,8 @@ exports.getFeaturedCoaching = async (req, res) => {
 exports.getCoachingById = async (req, res) => {
   try {
     const coachingId = req.params.id;
-    const coaching = await Coaching.findById(coachingId).select('-__v -is_deleted -updatedAt')
-    .lean();
+    const coaching = await CoachingLesson.findOne({_id:coachingId, is_deleted: false}).select('-__v -is_deleted -updatedAt')
+      .lean();
     if (!coaching) {
       return sendErrorResponse(res, httpStatus.NOT_FOUND, 'Coaching not found');
     }
@@ -146,8 +153,8 @@ exports.getCoachingById = async (req, res) => {
 exports.getCoachingBySlug = async (req, res) => {
   try {
     const coaching_slug = req.params.coaching_slug;
-    const coaching = await Coaching.findOne({ coaching_slug: coaching_slug, is_deleted: false }).select('-__v -is_deleted -updatedAt')
-    .lean();
+    const coaching = await CoachingLesson.findOne({ coaching_slug: coaching_slug, is_deleted: false }).select('-__v -is_deleted -updatedAt')
+      .lean();
     if (!coaching) {
       return sendErrorResponse(res, httpStatus.NOT_FOUND, 'Coaching not found');
     }
@@ -161,7 +168,7 @@ exports.getCoachingBySlug = async (req, res) => {
 // @desc delete coaching by ID
 exports.deleteCoaching = async (req, res) => {
   try {
-    const deletedCoaching = await Coaching.findByIdAndUpdate(req.params.id, { $set: { is_deleted: true } });
+    const deletedCoaching = await CoachingLesson.findByIdAndUpdate(req.params.id, { $set: { is_deleted: true } });
     if (!deletedCoaching) {
       return sendErrorResponse(res, httpStatus.NOT_FOUND, 'Coaching not found');
     }
