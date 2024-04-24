@@ -51,13 +51,13 @@ exports.createPaymentIntent = async (req, res, next) => {
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
-      success_url: "http://localhost:8888/success/",
-      cancel_url: "http://localhost:3000/cancel",
+      success_url: "http://localhost:8888/booking/payment-success"+booking._id,
+      cancel_url: "http://localhost:3000/failure",
     });
-    if(session.url){
-      booking.is_payed = true
-      await booking.save()
-    }
+    // if(session.id){
+    //   booking.is_payed = true
+    //   await booking.save()
+    // }
     res.json({ id: session.id, url: session.url });
 
     // paymentIntent.create({
@@ -70,17 +70,17 @@ exports.createPaymentIntent = async (req, res, next) => {
   }
 };
 
-// exports.successPayment = async (req, res) => {
-//   try {
-//     const booking = await Booking.findById(req.params.id)
-//     if(!booking) return sendErrorResponse(res, httpStatus.NOT_FOUND, 'Booking Not Found');
-//     booking.is_payed = true
-//     await booking.save()
-//     res.send()
-//   } catch (error) {
-//     next(error);
-//   }
-// }
+exports.successPayment = async (req, res, next) => {
+  try {
+    const booking = await Booking.findById(req.params.id)
+    if(!booking) return sendErrorResponse(res, httpStatus.NOT_FOUND, 'Booking Not Found');
+    booking.is_payed = true
+    await booking.save()
+    return res.redirect(301, 'http://localhost:3000/success')
+  } catch (error) {
+    next(error);
+  }
+}
 
 // @route POST booking/
 // @desc add booking
