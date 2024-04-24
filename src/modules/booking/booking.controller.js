@@ -101,6 +101,16 @@ exports.getAllBookings = async (req, res, next) => {
   try {
     let { page, limit, selectQuery, searchQuery, sortQuery, populate } = parseFilters(req);
     searchQuery = { is_deleted: false };
+    if(req.query.lesson){
+      const lesson = await coachingModel.findById(req.query.lesson)
+      if(!lesson){
+          return sendErrorResponse(res, httpStatus.CONFLICT, 'Event Not Found');
+      }
+      searchQuery = {
+          ...searchQuery,
+          lesson: lesson._id
+      }
+  }
     populate = [
       {
         path: 'user',
@@ -122,7 +132,7 @@ exports.getAllBookings = async (req, res, next) => {
     //   };
     // }
     const bookings = await sendResponse(Booking, page, limit, sortQuery, searchQuery, selectQuery, populate, next);
-    return sendSuccessResponse(res, httpStatus.OK, 'Booking fetched', { bookings, randomBookings });
+    return sendSuccessResponse(res, httpStatus.OK, 'Booking fetched', bookings );
   } catch (error) {
     return sendErrorResponse(res, httpStatus.INTERNAL_SERVER_ERROR, 'Failed to fetch booking', error.message);
   }
@@ -130,11 +140,12 @@ exports.getAllBookings = async (req, res, next) => {
 
 // @route GET booking/my-booking
 // @desc get my booking
-exports.getMyBooking = async (req, res) => {
+exports.getMyBooking = async (req, res, next) => {
   try {
     let { page, limit, selectQuery, searchQuery, sortQuery, populate } = parseFilters(req);
     searchQuery = {
       user: req.user._id,
+      is_payed: false,
       is_deleted: false
     };
     populate = [
