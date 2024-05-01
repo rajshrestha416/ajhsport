@@ -19,23 +19,3 @@ router.get('/comments/:forum', verifyUser, controller.getComments)
 router.get('/replies/:comment', verifyUser, controller.getReplies)
 router.delete('/comment/:comment', verifyUser, controller.deleteComment)
 module.exports = router;
-
-
-// {
-//     from: "warehouses",
-//     let: { order_item: "$item", order_qty: "$ordered" },
-//     pipeline: [
-//        { $match:
-//           { $expr:
-//              { $and:
-//                 [
-//                   { $eq: [ "$stock_item",  "$$order_item" ] },
-//                   { $gte: [ "$instock", "$$order_qty" ] }
-//                 ]
-//              }
-//           }
-//        },
-//        { $project: { stock_item: 0, _id: 0 } }
-//     ],
-//     as: "stockdata"
-//   }

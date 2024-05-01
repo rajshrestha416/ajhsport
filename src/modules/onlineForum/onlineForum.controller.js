@@ -9,6 +9,11 @@ const OnlineForumJoiSchema = Joi.object({
   content: Joi.string().required()
 });
 
+const commentSchema = Joi.object({
+  comment: Joi.string().required(),
+  parentComment: Joi.string().optional()
+});
+
 // @route POST onlineForum/
 // @desc add onlineForum
 exports.addOnlineForum = async (req, res) => {
@@ -147,6 +152,12 @@ exports.deleteOnlineForum = async (req, res) => {
 // @desc Add Comment
 exports.addComment = async (req, res) => {
   try {
+    // const { error } = CommentForum.validate(req.body);
+
+    // if (error) {
+    //   sendErrorResponse(res, httpStatus.BAD_REQUEST, 'Failed to add Forum', {}, error.message);
+    // }
+
     const forum = req.params.forum;
     let commentData = {
       comment: req.body.comment,
@@ -230,7 +241,6 @@ exports.getComments = async (req, res) => {
     let { page, limit, selectQuery, searchQuery, sortQuery, populate } = parseFilters(req);
     // searchQuery = { is_deleted: false, forum: req.params.forum, };
     selectQuery = '-__v -is_deleted -is_active';
-    console.log(req.params.forum);
     const comments = await CommentForum.aggregate([
       {
         $match: {
@@ -303,16 +313,22 @@ exports.getComments = async (req, res) => {
           updatedAt: 1
         }
       },
-      { $sort: sortQuery },
-      { $limit: limit * 1 },
       { $skip: (page - 1) * limit },
+      { $limit: limit * 1 },
+      { $sort: sortQuery },
     ]);
 
     const totalComments = await CommentForum.countDocuments({
       is_deleted: false,
-      forum: req.params.forum
+      parentComment: { $eq: null },
+      forum: new mongoose.Types.ObjectId(req.params.forum),
     });
-    const totalPage = Math.ceil(totalComments / limit);
+    const totalParentComment = await CommentForum.countDocuments({
+      is_deleted: false,
+      parentComment: { $eq: null },
+      forum: new mongoose.Types.ObjectId(req.params.forum),
+    });
+    const totalPage = Math.ceil(totalParentComment / limit);
     // const onlineForums = await sendResponse(OnlineForum, page, limit, sortQuery, searchQuery, selectQuery, populate, next);
     return sendSuccessResponse(res, httpStatus.OK, 'Comments fetched', { comments, totalComments, totalPage });
   } catch (error) {
@@ -369,9 +385,9 @@ exports.getReplies = async (req, res) => {
           updatedAt: 1
         }
       },
-      { $sort: sortQuery },
-      { $limit: limit * 1 },
       { $skip: (page - 1) * limit },
+      { $limit: limit * 1 },
+        { $sort: sortQuery }
     ]);
     const totalComments = await CommentForum.countDocuments({
       is_deleted: false,
