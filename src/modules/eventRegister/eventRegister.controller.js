@@ -7,6 +7,7 @@ const { sendSuccessResponse, sendErrorResponse, parseFilters, sendResponse } = r
 const EventRegistration = require("./eventRegister.model");
 const Joi = require("joi");
 const Event = require("../event/event.model");
+const userModel = require("../user/user.model");
 
 const eventJoiSchema = Joi.object({
     event: Joi.string().required()
@@ -75,10 +76,26 @@ exports.getEventRegistration = async (req, res, next) => {
     try {
         const id = req.params.id;
 
-        const event = await EventRegistration.findOne({
-            _id: id,
-            isDeleted: false
-        }).select('-isDeleted -__v').populate([
+        let { page, limit, searchQuery, selectQuery, sortQuery, populate } = parseFilters(req);
+
+        searchQuery = {
+            ...searchQuery,
+            event: id,
+        };
+
+        if (req.query.user) {
+            //get User
+            const user = await userModel.distinct('_id', {
+                email: { $regex: req.query.user, $options: 'i' }
+            });
+
+            searchQuery = {
+                ...searchQuery,
+                user: { $in: user }
+            };
+        }
+
+        populate = [
             {
                 path: 'user',
                 select: 'firstname lastname email contact'
@@ -87,8 +104,11 @@ exports.getEventRegistration = async (req, res, next) => {
                 path: 'event',
                 select: 'eventName eventSlug eventDescription startDate endData startTime endTime occurrence location'
             }
-        ]);
-        return sendSuccessResponse(res, httpStatus.OK, 'EventRegistration', event);
+        ];
+        selectQuery = '-isDeleted -__v';
+
+        const eventRegistrations = await sendResponse(EventRegistration, page, limit, sortQuery, searchQuery, selectQuery, populate);
+        return sendSuccessResponse(res, httpStatus.OK, 'EventRegistration', eventRegistrations);
     } catch (error) {
         next(error);
     }
@@ -101,7 +121,7 @@ exports.updateUserEventStatus = async (req, res, next) => {
             event: eventId,
             user: userId,
             isDeleted: false
-        }, req.body, { new: true});
+        }, req.body, { new: true });
         return sendSuccessResponse(res, httpStatus.OK, 'Registration Updated', registeredEvent);
     } catch (error) {
         next(error);
