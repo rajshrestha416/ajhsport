@@ -5,7 +5,7 @@ const { verifyUser } = require('../../middleware/auth');
 router.post('/', verifyUser, controller.addOnlineForum);
 router.get('/my-forum', verifyUser, controller.getMyForums);
 router.get('/forums', controller.getAllOnlineForums);
-router.get('/:slug', verifyUser, controller.getOnlineForumBySlug);
+router.get('/:id', verifyUser, controller.getOnlineForumById);
 router.put('/:id', verifyUser, controller.updateOnlineForum);
 // router.put('/remove-image/:id', verifyUser, controller.removeImage);
 // router.get('/:id', verifyUser, controller.getOnlineForumById);

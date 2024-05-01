@@ -60,6 +60,12 @@ exports.getAllOnlineForums = async (req, res, next) => {
         ...searchQuery,
       };
     }
+    populate = [
+      {
+        path: 'postedBy',
+        select: 'firstname lastname email image'
+      }
+    ];
     const onlineForums = await sendResponse(OnlineForum, page, limit, sortQuery, searchQuery, selectQuery, populate, next);
     const randomOnlineForums = await OnlineForum.aggregate([{ $match: { is_deleted: false } }, { $sample: { size: 5 } }]);
     return sendSuccessResponse(res, httpStatus.OK, 'Forum fetched', { onlineForums, randomOnlineForums });
@@ -94,7 +100,10 @@ exports.getOnlineForumById = async (req, res) => {
   try {
     const onlineForumId = req.params.id;
     const onlineForum = await OnlineForum.findById(onlineForumId).select('-__v -is_deleted -updatedAt')
-      .lean();
+      .populate({
+        path: 'postedBy',
+        select: 'firstname lastname email image'
+      }).lean();
     if (!onlineForum) {
       return sendErrorResponse(res, httpStatus.NOT_FOUND, 'Forum not found');
     }
@@ -241,9 +250,38 @@ exports.getComments = async (req, res) => {
       {
         $lookup: {
           from: 'comments',
-          localField: 'replies',
-          foreignField: '_id',
-          as: 'replies',
+          let: { replyIds: '$replies' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ['$_id', '$$replyIds']
+                }
+              }
+            },
+            {
+              $lookup: {
+                from: 'users',
+                localField: 'postedBy',
+                foreignField: '_id',
+                as: 'postedBy'
+              }
+            }, {
+              $project: {
+                comment: 1,
+                replies: 1,
+                postedBy: {
+                  firstname: 1,
+                  lastname: 1,
+                  email: 1,
+                  image: 1
+                },
+                updatedAt: 1,
+                createdAt: 1
+              }
+            }
+          ],
+          as: 'replies'
         }
       },
       {
