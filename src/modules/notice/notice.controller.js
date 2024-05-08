@@ -23,11 +23,31 @@ exports.getNotice = async (req, res, next)=>{
             }
         ];
 
-        selectQuery = '-__v -receiver';
+        selectQuery = '-__v -receiver -read_by';
 
         const notices = await sendResponse(Notice, page, limit, sortQuery, searchQuery, selectQuery, populate);
         return sendSuccessResponse(res, httpStatus.OK, 'Notices', notices);
 
+    } catch (error) {
+        next(error)
+    }
+}
+
+exports.markAsRead = async (req, res, next) => {
+    try {
+        await Notice.findOneAndUpdate({
+            _id: req.params.noticeId,
+            'read_by.readerId': req.user._id
+        }, {
+            $push: {
+                read_by: {
+                    readerId: req.user._id,
+                    read_at: Date.now()
+                }
+            }
+        })
+
+        return sendSuccessResponse(res, httpStatus.OK, 'Mark As Read', {});
     } catch (error) {
         next(error)
     }

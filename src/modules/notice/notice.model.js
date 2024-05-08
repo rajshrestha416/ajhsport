@@ -6,10 +6,10 @@ const NoticeSchema = new Schema({
     event: { type: Schema.Types.ObjectId, ref: 'Event' },
     sender: { type: Schema.Types.ObjectId, ref: 'User' },
     receiver: { type: [Schema.Types.ObjectId], ref: 'User' },
-    read_by: {
-        readerId: { type: [Schema.Types.ObjectId] },
+    read_by: [{
+        readerId: { type: Schema.Types.ObjectId },
         read_at: { type: Date}
-    }
+    }]
 }, {
     timestamps: true
 });
