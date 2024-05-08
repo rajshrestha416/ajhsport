@@ -64,7 +64,7 @@ exports.createPaymentIntent = async (req, res, next) => {
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
-      success_url: `http://localhost:${process.env.PORT}/booking/payment-success/${booking._id}`,
+      success_url: `http://localhost:${process.env.PORT}/api/booking/payment-success/${booking._id}`,
       cancel_url: "http://localhost:3000/failure",
     });
     // if(session.id){
