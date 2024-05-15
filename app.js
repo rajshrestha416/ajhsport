@@ -84,15 +84,17 @@ app.use(async( err, req, res, next)=> {{
 app.set('PORT', port);
 const server = http.createServer(app);
 
-server.listen(port, () => {
-  console.log(`Server is starting at port ${port} || SUCCESS`);
-  console.log(`Hosting at ${url}:${port} || SUCCESS`);
-  console.log(`${app_name} is running on env ${env} || SUCCESS`);
-  console.log(
-    '--------------------------------------------------------------------------------------------------------------------------------------------------'
-  );
-});
+// server.listen(port, () => {
+//   console.log(`Server is starting at port ${port} || SUCCESS`);
+//   console.log(`Hosting at ${url}:${port} || SUCCESS`);
+//   console.log(`${app_name} is running on env ${env} || SUCCESS`);
+//   console.log(
+//     '--------------------------------------------------------------------------------------------------------------------------------------------------'
+//   );
+// });
 
+
+module.exports = app
 // Handle unhandled rejections
 // process.on('unhandledRejection', (err) => {
 //   console.log('Unhandled Rejection occured:', err.name);

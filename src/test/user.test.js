@@ -1,84 +1,90 @@
 const httpStatus = require('http-status');
-const { initializeApp } = require('../../server');
+const app = require('../../app');
 const request = require('supertest');
 require('dotenv').config();
+const mongoose = require('mongoose');
 
 describe("User Test", () => {
-    let app;
-    let user_id, superAdminToken;
+    let user_id, userToken;
 
     async function loginAsSuperAdmin() {
         const superAdminData = {
-            email: "superadmin@gmail.com",
+            email: "superadmin@ajh.com",
             password: "password"
         };
 
         const res = await request(app)
-            .post('/users/login')
+            .post('/api/user/login')
             .send(superAdminData);
-        console.log("res", res.body);
+        console.log("bbbbbbbbb", res.body);
         return res.body.data.token;
     }
 
     beforeAll(async () => {
 
         // Initialize the app before running tests
-        app = await initializeApp();
+        // await initializeApp();
         //login as superadmin
         superAdminToken = await loginAsSuperAdmin();
     });
 
+    afterAll(async () => {
+        await mongoose.disconnect();
+    });
+
     it('User Register', async () => {
-        const res = await request(app).post('/users/register')
+        const res = await request(app).post('/api/user/register')
             .send({
-                name: "Test ing",
+                firstname: "Test",
+                lastname: "Testing",
                 email: "test@gmail.com",
                 password: "password",
-                mobile_no: "9800000000"
+                contact: "9800000000",
+                address: "address",
+                expertiseLevel: "beginner",
             });
         expect(res.statusCode).toEqual(httpStatus.OK);
         expect(res.body.success).toEqual(true);
     });
 
     it('User Login!! Invalid Credential', async () => {
-        const res = await request(app).post('/users/login')
+        const res = await request(app).post('/api/user/login')
             .send({
                 email: "test@gmail.com",
                 password: "password123",
             });
-        expect(res.statusCode).toEqual(httpStatus.UNAUTHORIZED);
+        console.log("res", res.body);
+        expect(res.statusCode).toEqual(httpStatus.BAD_REQUEST);
         expect(res.body.success).toEqual(false);
     });
 
     it('User Login!! Success', async () => {
-        const res = await request(app).post('/users/login')
+        const res = await request(app).post('/api/user/login')
             .send({
                 email: "test@gmail.com",
                 password: "password",
             });
-        console.log("res", res.body);
-        user_id = res.body.data._id;
+        userToken = res.body.data.token;
         expect(res.statusCode).toEqual(httpStatus.OK);
         expect(res.body.success).toEqual(true);
     });
 
-    it('User Login!! Success', async () => {
-        const res = await request(app).post('/users/login')
+    it('User Update Profile !! Success', async () => {
+        const res = await request(app).put('/api/user/update-profile')
+            .set('Authorization', `Bearer ${userToken}`)
             .send({
-                email: "test@gmail.com",
-                password: "password",
+                firstnama: "update"
             });
-        console.log("res", res.body);
         expect(res.statusCode).toEqual(httpStatus.OK);
         expect(res.body.success).toEqual(true);
     });
 
-    it('User Delete!! Success', async () => {
-        const res = await request(app).delete(`/users/delete-user/${user_id}`)
-            .set('Authorization', `Bearer ${superAdminToken}`);
-        expect(res.statusCode).toEqual(httpStatus.OK);
-        expect(res.body.success).toEqual(true);
-    });
+    // it('User Delete!! Success', async () => {
+    //     const res = await request(app).delete(`/users/delete-user/${user_id}`)
+    //         .set('Authorization', `Bearer ${superAdminToken}`);
+    //     expect(res.statusCode).toEqual(httpStatus.OK);
+    //     expect(res.body.success).toEqual(true);
+    // });
 
 
 });

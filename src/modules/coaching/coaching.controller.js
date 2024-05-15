@@ -34,7 +34,7 @@ exports.addCoaching = async (req, res) => {
       const { error } = coachingJoiSchema.validate(req.body);
 
       if (error) {
-        sendErrorResponse(res, httpStatus.BAD_REQUEST, 'Failed to add coaching', {}, error.message);
+        return sendErrorResponse(res, httpStatus.BAD_REQUEST, 'Failed to add coaching', {}, error.message);
       }
 
       const checkCoachingExists = await CoachingLesson.findOne({ title: req.body.title, is_deleted: false });
@@ -68,6 +68,7 @@ exports.updateCoaching = async (req, res) => {
         req.body.price = JSON.parse(req.body.price);
       }
 
+      console.log("error", req.params.id)
       const updatedCoaching = await CoachingLesson.findByIdAndUpdate(req.params.id, req.body, { new: true });
       if (!updatedCoaching) {
         return sendErrorResponse(res, httpStatus.NOT_FOUND, 'Coaching not found');
@@ -75,6 +76,7 @@ exports.updateCoaching = async (req, res) => {
       return sendSuccessResponse(res, httpStatus.OK, 'Coaching Updated', updatedCoaching);
       // })
     } catch (error) {
+      console.log(error)
       return sendErrorResponse(res, httpStatus.INTERNAL_SERVER_ERROR, 'Failed to update coaching', error.message);
     }
   });
@@ -171,6 +173,7 @@ exports.getCoachingBySlug = async (req, res) => {
 // @desc delete coaching by ID
 exports.deleteCoaching = async (req, res) => {
   try {
+    console.log("error", req.params.id)
     const deletedCoaching = await CoachingLesson.findByIdAndUpdate(req.params.id, { $set: { is_deleted: true } });
     if (!deletedCoaching) {
       return sendErrorResponse(res, httpStatus.NOT_FOUND, 'Coaching not found');
