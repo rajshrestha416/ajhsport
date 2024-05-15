@@ -19,14 +19,6 @@ const coachingLessonSchema = new Schema(
     time: { type: String },
     interval: { type: Number},
     location: { type: String },
-    expertiseLevel: {
-      type: String,
-      enum: ["new",
-        "beginner",
-        "intermediate",
-        "advanced"],
-      default: 'new'
-    },
     is_deleted: { type: Boolean, default: false },
     is_active: { type: Boolean, default: true },
   },
