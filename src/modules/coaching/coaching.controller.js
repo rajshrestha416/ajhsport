@@ -14,10 +14,10 @@ const coachingJoiSchema = Joi.object({
       group: Joi.number().min(1)
     })
   ),
-  time: Joi.string.required(),
+  time: Joi.string().required(),
   interval: Joi.number().required(),
-  location: Joi.string.required(),
-  expertiseLevel: Joi.string.required(),
+  location: Joi.string().required(),
+  expertiseLevel: Joi.string().required(),
 });
 
 // @route POST coaching/
