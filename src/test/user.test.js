@@ -1,5 +1,5 @@
 const httpStatus = require('http-status');
-const app = require('../../app');
+const { app, server } = require('../../app');
 const request = require('supertest');
 require('dotenv').config();
 const mongoose = require('mongoose');
@@ -30,6 +30,7 @@ describe("User Test", () => {
 
     afterAll(async () => {
         await mongoose.disconnect();
+        await new Promise(resolve => server.close(resolve));
     });
 
     it('User Register', async () => {
