@@ -17,7 +17,6 @@ const coachingJoiSchema = Joi.object({
   time: Joi.string().required(),
   interval: Joi.number().required(),
   location: Joi.string().required(),
-  expertiseLevel: Joi.string().required(),
 });
 
 // @route POST coaching/
