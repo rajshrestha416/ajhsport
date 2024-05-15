@@ -147,16 +147,7 @@ exports.markAsRead = async (req, res, next) => {
                     //send challenge notice
                     await Notice.create({
                         sender: req.user._id,
-                        receiver: [ notice.sender ],
-                        message: `Match Confirmed!! 
-                        Please Contact AJH for your match.
-                        ${req.user.firstname} ${req.user.lastname} VS ${sender.firstname} ${sender.lastname}`
-                    })
-                    
-                    //send challenge notice
-                    await Notice.create({
-                        sender: notice.sender,
-                        receiver: [ req.user._id ],
+                        receiver: [ notice.sender, req.user._id ],
                         message: `Match Confirmed!! 
                         Please Contact AJH for your match.
                         ${req.user.firstname} ${req.user.lastname} VS ${sender.firstname} ${sender.lastname}`
