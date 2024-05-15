@@ -5,6 +5,7 @@ const Joi = require('joi');
 const { default: Stripe } = require('stripe');
 const coachingModel = require('../coaching/coaching.model');
 const userModel = require('../user/user.model');
+const noticeModel = require('../notice/notice.model');
 console.log('ev',process.env.STRIPE_KEY)
 const stripe = require('stripe')(process.env.STRIPE_KEY);
 
@@ -85,7 +86,7 @@ exports.createPaymentIntent = async (req, res, next) => {
 };
 
 const addNotice = async (lesson, user) => {
-  const users = await bookingModel.distinct('user', {
+  const users = await Booking.distinct('user', {
       lesson: lesson,
       user: { $ne: user }
   });
