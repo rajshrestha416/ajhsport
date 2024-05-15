@@ -171,7 +171,7 @@ exports.getMyBooking = async (req, res, next) => {
     let { page, limit, selectQuery, searchQuery, sortQuery, populate } = parseFilters(req);
     searchQuery = {
       user: req.user._id,
-      is_payed: false,
+      is_payed: true,
       is_deleted: false
     };
     populate = [
