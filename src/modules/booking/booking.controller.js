@@ -85,16 +85,20 @@ exports.createPaymentIntent = async (req, res, next) => {
 };
 
 const addNotice = async (lesson, user) => {
-  const receiver = await bookingModel.distinct('user', {
+  const users = await bookingModel.distinct('user', {
       lesson: lesson,
       user: { $ne: user }
   });
 
+  
   const _user = await userModel.findById(user)
+  const receiver = await userModel.distinct('_id', {
+    _id: {$in: users}, expertiseLevel: _user.expertiseLevel
+  })
 
   if (receiver.length > 0) {
       await noticeModel.create({
-          message: `Recommended for Match!! ${_user.firstname} ${_user.lastname} and you matched for a Match.`,
+          message: `Match Recommendation!! ${_user.firstname} ${_user.lastname} and you matched for a Match.`,
           lesson: lesson,
           receiver,
           sender: user
@@ -108,7 +112,7 @@ exports.successPayment = async (req, res, next) => {
     if (!booking) return sendErrorResponse(res, httpStatus.NOT_FOUND, 'Booking Not Found');
     booking.is_payed = true;
     //send notice
-    await addNotice(booking.lesson, booking.user);
+    addNotice(booking.lesson, booking.user);
     await booking.save();
     return res.redirect(301, 'http://localhost:3000/success');
   } catch (error) {

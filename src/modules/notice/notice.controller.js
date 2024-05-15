@@ -2,6 +2,7 @@ const httpStatus = require("http-status");
 const { sendSuccessResponse, parseFilters, sendResponse } = require("../../helpers/responseHelper");
 const Notice = require("./notice.model");
 const { ObjectId } = require("mongodb");
+const Match = require("../booking/match.model");
 
 
 
@@ -88,9 +89,9 @@ exports.getNotice = async (req, res, next) => {
 
         selectQuery = '-__v -receiver -read_by';
 
-        const count = await Notice.countDocuments({receiver: req.user._id}).lean();
+        const count = await Notice.countDocuments({ receiver: req.user._id }).lean();
         const totalPage = Math.ceil(count / limit);
-        return sendSuccessResponse(res, httpStatus.OK, 'Notices', {data, count, totalPage});
+        return sendSuccessResponse(res, httpStatus.OK, 'Notices', { data, count, totalPage });
 
     } catch (error) {
         next(error);
@@ -99,8 +100,9 @@ exports.getNotice = async (req, res, next) => {
 
 exports.markAsRead = async (req, res, next) => {
     try {
-        // const {}
-        await Notice.findOneAndUpdate({
+        const { match } = req.body;
+
+        let notice = await Notice.findOneAndUpdate({
             _id: req.params.noticeId,
             'read_by.readerId': { $ne: req.user._id }
         }, {
@@ -112,6 +114,50 @@ exports.markAsRead = async (req, res, next) => {
             }
         });
 
+        if (match) {
+            switch(match){
+                case 'challenge':
+                    //create match
+                    const match = await Match.create({
+                        player1: req.user._id
+                    })
+                    //send challenge notice
+                    await Notice.create({
+                        match: match._id,
+                        lesson: notice.lesson,
+                        sender: req.user._id,
+                        receiver: [ notice.sender ],
+                        message: `Match Recommendation!! ${req.user.firstname} ${req.user.lastname} has challenged you for a match.`
+                    })
+                    break;
+                case 'accept':
+                    //accept challenge --- match fixed
+                    await Match.findOneAndUpdate({
+                        player1: notice.sender,
+                        is_deleted: false
+                    }, {
+                        $set: {
+                            player2: req.user._id
+                        }
+                    })
+                    break;
+                case 'decline':
+                    //accept challenge --- match fixed
+                    await Match.findOneAndUpdate({
+                        player1: notice.sender
+                    }, {
+                        $set: {
+                            is_deleted: true
+                        }
+                    })
+                    //decline challenge --- delete match
+                    break;
+                case 'ignore':
+                    //ignore challenge --- ignore
+                    break;
+            }
+        }
+        console.log(notice);
         return sendSuccessResponse(res, httpStatus.OK, 'Mark As Read', {});
     } catch (error) {
         next(error);

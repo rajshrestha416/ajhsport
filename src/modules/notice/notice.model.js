@@ -5,6 +5,7 @@ const NoticeSchema = new Schema({
     message: { type: String },
     event: { type: Schema.Types.ObjectId, ref: 'Event' },
     lesson: {type: Schema.Types.ObjectId, ref: 'CoachingLesson'},
+    match: {type: Schema.Types.ObjectId, ref: 'Match'},
     sender: { type: Schema.Types.ObjectId, ref: 'User' },
     receiver: { type: [Schema.Types.ObjectId], ref: 'User' },
     read_by: [{
