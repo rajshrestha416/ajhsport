@@ -3,6 +3,7 @@ const { sendSuccessResponse, parseFilters, sendResponse } = require("../../helpe
 const Notice = require("./notice.model");
 const { ObjectId } = require("mongodb");
 const Match = require("../booking/match.model");
+const userModel = require("../user/user.model");
 
 
 
@@ -140,6 +141,27 @@ exports.markAsRead = async (req, res, next) => {
                             player2: req.user._id
                         }
                     })
+
+                    const sender = await userModel.findById(notice.sender)
+
+                    //send challenge notice
+                    await Notice.create({
+                        sender: req.user._id,
+                        receiver: [ notice.sender ],
+                        message: `Match Confirmed!! 
+                        Please Contact AJH for your match.
+                        ${req.user.firstname} ${req.user.lastname} VS ${sender.firstname} ${sender.lastname}`
+                    })
+                    
+                    //send challenge notice
+                    await Notice.create({
+                        sender: notice.sender,
+                        receiver: [ req.user._id ],
+                        message: `Match Confirmed!! 
+                        Please Contact AJH for your match.
+                        ${req.user.firstname} ${req.user.lastname} VS ${sender.firstname} ${sender.lastname}`
+                    })
+                    
                     break;
                 case 'decline':
                     //accept challenge --- match fixed
@@ -150,6 +172,7 @@ exports.markAsRead = async (req, res, next) => {
                             is_deleted: true
                         }
                     })
+                    
                     //decline challenge --- delete match
                     break;
                 case 'ignore':
