@@ -29,40 +29,42 @@ exports.getNotice = async (req, res, next) => {
                     as: 'sender'
                 }
             },
-            {
-                $lookup: {
-                    from: 'events',
-                    foreignField: '_id',
-                    localField: 'event',
-                    as: 'event'
-                }
-            },
+            // {
+            //     $lookup: {
+            //         from: 'events',
+            //         foreignField: '_id',
+            //         localField: 'event',
+            //         as: 'event'
+            //     }
+            // },
             {
                 $unwind: { path: '$sender' }
             },
-            {
-                $unwind: { path: '$event' }
-            },
+            // {
+            //     $unwind: { path: '$event' }
+            // },
             {
                 $project: {
                     message: 1,
-                    event: {
-                        eventName: 1,
-                        eventSlug: 1,
-                        eventDescription: 1,
-                        startDate: 1,
-                        endData: 1,
-                        startTime: 1,
-                        endTime: 1,
-                        occurrence: 1,
-                        location: 1
-                    },
+                    // event: {
+                    //     eventName: 1,
+                    //     eventSlug: 1,
+                    //     eventDescription: 1,
+                    //     startDate: 1,
+                    //     endData: 1,
+                    //     startTime: 1,
+                    //     endTime: 1,
+                    //     occurrence: 1,
+                    //     location: 1
+                    // },
+                    event: 1,
                     sender: {
                         firstname: 1,
                         lastname: 1,
                         email: 1,
                         contact: 1
                     },
+                    match: 1,
                     lesson: 1,
                     is_read: {
                         $cond: {
